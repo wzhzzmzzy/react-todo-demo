@@ -1,4 +1,4 @@
-import {css} from "@emotion/react";
+import { css } from '@emotion/react'
 
 export const vanillaStyle = css`
   padding: 15px;

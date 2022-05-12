@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import Button from '@mui/material/Button';
-import './styles/app.css'
+import Button from '@mui/material/Button'
 
 function Counter () {
   const [count, setCount] = useState(0)

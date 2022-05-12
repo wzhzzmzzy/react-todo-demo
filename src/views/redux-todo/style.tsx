@@ -1,4 +1,4 @@
-import {css} from "@emotion/react";
+import { css } from '@emotion/react'
 
 export const vanillaStyle = css`
   padding: 15px;
@@ -15,6 +15,10 @@ export const todoItemDoneStyle = css`
   text-decoration: line-through;
   background-color: #eee;
   opacity: 0.6;
+`
+
+export const todoItemChosenStyle = css`
+  background-color: azure;
 `
 
 export const todoItemStyle = css`

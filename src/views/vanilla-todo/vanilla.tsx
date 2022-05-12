@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { jsx, css } from '@emotion/react';
-import produce from "immer";
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import CropSquareIcon from '@mui/icons-material/CropSquare';
-import DoneIcon from '@mui/icons-material/Done';
-import IconButton from '@mui/material/IconButton';
+import React, { useState, memo, useCallback } from 'react'
+import { jsx, css } from '@emotion/react'
+import produce from 'immer'
+import AddBoxIcon from '@mui/icons-material/AddBox'
+import CropSquareIcon from '@mui/icons-material/CropSquare'
+import DoneIcon from '@mui/icons-material/Done'
+import IconButton from '@mui/material/IconButton'
 import { vanillaStyle, todoItemDoneStyle, todoItemStyle } from './style'
 
 interface Todo {
@@ -13,10 +13,16 @@ interface Todo {
   done: boolean
 }
 
-const TodoItem : React.FC<{ todo: Todo, toggleTodo: () => void }> = ({ todo, toggleTodo }) => {
+const TodoItem : React.FC<{
+  todo: Todo,
+  index?: number,
+  toggleTodo: (i?: number) => void
+}> = ({ todo, index, toggleTodo }) => {
+  console.log('TodoItem', todo.title, 'render')
+
   return (
     <li css={[todoItemStyle, todo.done ? todoItemDoneStyle : null]}>
-      <IconButton color="secondary" onClick={toggleTodo}>
+      <IconButton color="secondary" onClick={() => toggleTodo(index)}>
         { !todo.done ? <CropSquareIcon /> : <DoneIcon /> }
       </IconButton>
       <div className="content">
@@ -27,7 +33,11 @@ const TodoItem : React.FC<{ todo: Todo, toggleTodo: () => void }> = ({ todo, tog
   )
 }
 
+const MemoTodoItem = memo(TodoItem)
+
 const TodoList : React.FC = () => {
+  console.log('TodoList', 'render')
+
   const [todoList, setTodoList] = useState<Todo[]>([
     {
       title: 'Todo 1',
@@ -62,32 +72,49 @@ const TodoList : React.FC = () => {
   }
 
   // 使用 immer 实现 state 的深层修改
-  const toggleTodoByImmer = (index: number) => {
+  const toggleTodoByImmer = useCallback((index: number) => {
     setTodoList(produce(todoList => {
       todoList[index].done = !todoList[index].done
+    }))
+  }, [])
+
+  const addTodo = () => { 
+    setTodoList(produce(todoList => {
+      todoList.push({
+        title: `New Todo ${(todoList.length + 1)}`,
+        description: 'This is a new todo',
+        done: false
+      })
     }))
   }
 
   return (
-    <ul css={css`margin: 0; padding: 0`}>
-      {
-        todoList.map((todo, index) => (
-          <TodoItem key={index} todo={todo} toggleTodo={() => toggleTodoByReplace(index)} />
-        ))
-      }
-    </ul>
+    <div>
+      <h2>
+        <span>初级 TODO</span>
+        <IconButton color="secondary" onClick={addTodo}>
+          <AddBoxIcon />
+        </IconButton>
+      </h2>
+      <ul css={css`margin: 0; padding: 0`}>
+        {
+          /* todoList.map((todo, index) => (
+            <MemoTodoItem key={index} todo={todo} index={index} toggleTodo={toggleTodoByImmer} />
+          )) */
+          todoList.map((todo, index) => (
+            <TodoItem key={index} todo={todo} toggleTodo={() => toggleTodoByImmer(index)} />
+          ))
+        }
+      </ul>
+    </div>
   )
 }
 
 const VanillaTodo : React.FC = () => {
+  console.log('VanillaTodo', 'render')
+
   return (
     <main css={vanillaStyle}>
-      <h2>
-        <span>初级 TODO</span>
-        <IconButton color="secondary">
-          <AddBoxIcon />
-        </IconButton>
-      </h2>
       <TodoList />
     </main>
   )

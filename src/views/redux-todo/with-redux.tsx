@@ -1,96 +1,115 @@
-import React, { useState } from 'react';
-import { jsx, css } from '@emotion/react';
-import produce from "immer";
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import CropSquareIcon from '@mui/icons-material/CropSquare';
-import DoneIcon from '@mui/icons-material/Done';
-import IconButton from '@mui/material/IconButton';
-import { vanillaStyle, todoItemDoneStyle, todoItemStyle } from './style'
+import React, { memo, useCallback } from 'react'
+import { jsx, css } from '@emotion/react'
+import { connect, Provider } from 'react-redux'
+import AddBoxIcon from '@mui/icons-material/AddBox'
+import CropSquareIcon from '@mui/icons-material/CropSquare'
+import DoneIcon from '@mui/icons-material/Done'
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
 
-interface Todo {
-  title: string
-  description?: string
-  done: boolean
+import { addTodo, toggleTodo, setFilter, Todo, selectTodoWithFilter, FILTER } from './store/todo-slice'
+import { vanillaStyle, todoItemDoneStyle, todoItemStyle, todoItemChosenStyle } from './style'
+import store, { useAppSelector, useAppDispatch, RootState } from './store'
+
+interface TodoItemProps {
+  todo: Todo,
+  toggleTodo?: (id: number) => void,
+  onInputTitle?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onInputDescription?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-const TodoItem : React.FC<{ todo: Todo, toggleTodo: () => void }> = ({ todo, toggleTodo }) => {
+const TodoItem : React.FC<TodoItemProps> = ({ todo, toggleTodo, onInputTitle, onInputDescription }) => {
+  console.log('TodoItem', todo.title, 'render')
+
   return (
-    <li css={[todoItemStyle, todo.done ? todoItemDoneStyle : null]}>
-      <IconButton color="secondary" onClick={toggleTodo}>
+    <li css={[todoItemStyle, todo.done && todoItemDoneStyle, todo.chosen && todoItemChosenStyle]}>
+      <IconButton color="secondary" onClick={() => toggleTodo?.(todo.id)}>
         { !todo.done ? <CropSquareIcon /> : <DoneIcon /> }
       </IconButton>
       <div className="content">
-        <h3>{todo.title}</h3>
-        { todo.description && <p>{todo.description}</p> }
+        <TextField label="标题" variant="outlined" size="small" value={todo.title} onInput={onInputTitle} />
+        {
+          todo.description &&
+          <TextField
+            label="描述"
+            multiline
+            maxRows={4}
+            variant="standard"
+            size="small"
+            value={todo.description}
+            onInput={onInputDescription}
+          />
+        }
       </div>
     </li>
   )
 }
 
+const MemoTodoItem = memo(TodoItem)
+
 const TodoList : React.FC = () => {
-  const [todoList, setTodoList] = useState<Todo[]>([
-    {
-      title: 'Todo 1',
-      description: 'This is a todo',
-      done: false
-    },
-    {
-      title: 'Todo 2',
-      description: 'This is a todo',
-      done: false
-    },
-    {
-      title: 'Todo 3',
-      description: 'This is a todo',
-      done: false
-    }
-  ])
+  console.log('TodoList render')
 
-  // 直接修改 state 内的深层属性
-  const toggleTodo = (index: number) => {
-    setTodoList(todoList => {
-      todoList[index].done = !todoList[index].done
-      return todoList
-    })
-  }
+  const todoList = useAppSelector(selectTodoWithFilter)
+  const dispatch = useAppDispatch()
 
-  // 修改时做一次外层浅拷贝
-  const toggleTodoByReplace = (index: number) => {
-    const newTodoList = [...todoList]
-    newTodoList[index].done = !newTodoList[index].done
-    setTodoList(newTodoList)
-  }
-
-  // 使用 immer 实现 state 的深层修改
-  const toggleTodoByImmer = (index: number) => {
-    setTodoList(produce(todoList => {
-      todoList[index].done = !todoList[index].done
-    }))
-  }
+  const toggleTodoStatus = useCallback((id: number) => {
+    dispatch(toggleTodo(id))
+  }, [dispatch])
 
   return (
     <ul css={css`margin: 0; padding: 0`}>
       {
-        todoList.map((todo, index) => (
-          <TodoItem key={index} todo={todo} toggleTodo={() => toggleTodoByReplace(index)} />
+        todoList.map((todo) => (
+          <MemoTodoItem key={todo.id} todo={todo} toggleTodo={toggleTodoStatus} />
         ))
       }
     </ul>
   )
 }
 
-const VanillaTodo : React.FC = () => {
+const ReduxTodo : React.FC<{
+  todoListFilter: FILTER,
+  setFilter: (f: FILTER) => void
+  addTodo: () => void
+}> = ({ todoListFilter, setFilter, addTodo }) => {
+  console.log('ReduxTodo', 'render')
+
   return (
     <main css={vanillaStyle}>
       <h2>
-        <span>初级 TODO</span>
-        <IconButton color="secondary">
-          <AddBoxIcon />
-        </IconButton>
+        <span>Redux TODO</span>
+        <span>
+          <Button onClick={() => setFilter(todoListFilter === 'all' ? 'incomplete' : 'all')}>
+            {todoListFilter === 'all' ? '全部' : '未完成'}
+          </Button>
+          <IconButton color="secondary" onClick={addTodo}>
+            <AddBoxIcon />
+          </IconButton>
+        </span>
       </h2>
       <TodoList />
     </main>
   )
 }
 
-export default VanillaTodo
+const ReduxTodoWithRedux = connect(
+  (state: RootState) => ({
+    todoListFilter: state.todo.filter
+  }),
+  dispatch => ({
+    setFilter: (filter: FILTER) => dispatch(setFilter(filter)),
+    addTodo: () => dispatch(addTodo())
+  })
+)(ReduxTodo) as unknown as () => JSX.Element
+
+const ReduxTodoPage : React.FC = () => {
+  return (
+    <Provider store={store}>
+      <ReduxTodoWithRedux />
+    </Provider>
+  )
+}
+
+export default ReduxTodoPage

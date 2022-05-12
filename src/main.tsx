@@ -1,17 +1,17 @@
 import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom'
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import Layout, { LoadingPage } from './layout'
-import Page404 from "./views/404";
+import Page404 from './views/404'
 import './styles/index.css'
 
-const App = React.lazy(() => import('./App'));
-const VanillaTodo = React.lazy(() => import('./views/vanilla-todo/vanilla'));
-const ReduxTodo = React.lazy(() => import('./views/redux-todo/with-redux'));
+const App = React.lazy(() => import('./App'))
+const VanillaTodo = React.lazy(() => import('./views/vanilla-todo/vanilla'))
+const ReduxTodo = React.lazy(() => import('./views/redux-todo/with-redux'))
 const SlowTodo = React.lazy(async () => {
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  await new Promise(resolve => setTimeout(resolve, 3000))
   return import('./views/vanilla-todo/vanilla')
-});
+})
 
 ReactDOM.render(
   <React.StrictMode>
