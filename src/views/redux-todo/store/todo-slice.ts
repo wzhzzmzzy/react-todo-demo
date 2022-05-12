@@ -17,7 +17,9 @@ interface State {
   filter: FILTER
 }
 
-const initialState: State = {
+const localStorageData = JSON.parse(localStorage.getItem('redux-todo') || 'null') as State
+
+const initialState: State = localStorageData || {
   value: [],
   filter: 'all'
 }
@@ -41,12 +43,16 @@ export const todoSlice = createSlice({
     },
     setFilter: (state, action: PayloadAction<FILTER>) => {
       state.filter = action.payload
+    },
+    updateTodo: (state, action: PayloadAction<Partial<Todo> & { id: number }>) => {
+      const i = state.value.findIndex(todo => todo.id === action.payload.id)
+      state.value[i] = { ...state.value[i], ...action.payload }
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { addTodo, toggleTodo, setFilter } = todoSlice.actions
+export const { addTodo, toggleTodo, setFilter, updateTodo } = todoSlice.actions
 
 export const selectTodo = (state: RootState) => state.todo.value
 export const selectFilter = (state: RootState) => state.todo.filter

@@ -1,16 +1,16 @@
-import React, { Suspense } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import {Drawer, List, ListItem, ListItemButton, ListItemText} from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import React, { Suspense } from 'react'
+import AppBar from '@mui/material/AppBar'
+import Box from '@mui/material/Box'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import MenuIcon from '@mui/icons-material/Menu'
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
+import { Drawer, List, ListItem, ListItemButton, ListItemText } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 
-export const LoadingPage : React.FC = ({ children }) => (
-  <Suspense fallback={<div className="main"><CloudDownloadIcon /><p>Loading...</p></div>}>
+export const LoadingPage: React.FC<{ text?: string }> = ({ text, children }) => (
+  <Suspense fallback={<div className="main"><CloudDownloadIcon/><p>{ text ?? '页面资源加载中...' }</p></div>}>
     {children}
   </Suspense>
 )
@@ -20,18 +20,21 @@ interface TodoProject {
   path: string
 }
 
-const SideDrawer : React.FC<{ open: boolean, onToggle: (open: boolean) => void }> = ({ open, onToggle }) => {
-  const navigate = useNavigate();
-  const [todoProjects, setTodoProjects] = React.useState<TodoProject[]>([
+const SideDrawer: React.FC<{ open: boolean, onToggle: (open: boolean) => void }> = ({ open, onToggle }) => {
+  const navigate = useNavigate()
+  const [todoProjects] = React.useState<TodoProject[]>([
     { title: 'Home', path: '/' },
     { title: '初级 TODO', path: '/todo/vanilla' },
     { title: '很慢的 TODO', path: '/todo/slow' },
+    { title: '双重很慢的 TODO', path: '/todo/suspense' },
+    { title: 'Context TODO', path: '/todo/context' },
+    { title: 'Redux TODO', path: '/todo/redux' },
+    { title: 'Zustand TODO', path: '/todo/zustand' },
     { title: '404 TODO', path: '/todo/noop' },
-    { title: 'Redux TODO', path: '/todo/redux' }
-  ]);
+  ])
   const navigateTo = (path: string) => {
-    onToggle(false);
-    navigate(path);
+    onToggle(false)
+    navigate(path)
   }
 
   return (
@@ -48,7 +51,7 @@ const SideDrawer : React.FC<{ open: boolean, onToggle: (open: boolean) => void }
           {todoProjects.map((todo, index) => (
             <ListItem key={todo.title} disablePadding>
               <ListItemButton onClick={() => navigateTo(todo.path)}>
-                <ListItemText primary={todo.title} />
+                <ListItemText primary={todo.title}/>
               </ListItemButton>
             </ListItem>
           ))}
@@ -58,8 +61,8 @@ const SideDrawer : React.FC<{ open: boolean, onToggle: (open: boolean) => void }
   )
 }
 
-const Layout : React.FC = ({ children }) => {
-  const [open, setOpen] = React.useState(false);
+const Layout: React.FC = ({ children }) => {
+  const [open, setOpen] = React.useState(false)
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -74,18 +77,18 @@ const Layout : React.FC = ({ children }) => {
               sx={{ mr: 2 }}
               onClick={() => setOpen(!open)}
             >
-              <MenuIcon />
+              <MenuIcon/>
             </IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               哒滴清单
             </Typography>
           </Toolbar>
         </AppBar>
-        <SideDrawer open={open} onToggle={setOpen} />
+        <SideDrawer open={open} onToggle={setOpen}/>
         {children}
       </section>
     </Box>
-  );
+  )
 }
 
-export default Layout;
+export default Layout

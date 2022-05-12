@@ -1,5 +1,5 @@
-import React, { memo, useCallback } from 'react'
-import { jsx, css } from '@emotion/react'
+import React, { useEffect } from 'react'
+import { css } from '@emotion/react'
 import { connect, Provider } from 'react-redux'
 import AddBoxIcon from '@mui/icons-material/AddBox'
 import CropSquareIcon from '@mui/icons-material/CropSquare'
@@ -8,23 +8,27 @@ import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
-import { addTodo, toggleTodo, setFilter, Todo, selectTodoWithFilter, FILTER } from './store/todo-slice'
-import { vanillaStyle, todoItemDoneStyle, todoItemStyle, todoItemChosenStyle } from './style'
-import store, { useAppSelector, useAppDispatch, RootState } from './store'
+import { addTodo, FILTER, selectTodoWithFilter, setFilter, Todo, toggleTodo, updateTodo } from './store/todo-slice'
+import { todoItemChosenStyle, todoItemDoneStyle, todoItemStyle, vanillaStyle } from './style'
+import store, { RootState, useAppDispatch, useAppSelector } from './store'
 
 interface TodoItemProps {
   todo: Todo,
-  toggleTodo?: (id: number) => void,
-  onInputTitle?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onInputDescription?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-const TodoItem : React.FC<TodoItemProps> = ({ todo, toggleTodo, onInputTitle, onInputDescription }) => {
+const TodoItem : React.FC<TodoItemProps> = ({ todo }) => {
   console.log('TodoItem', todo.title, 'render')
+  const dispatch = useAppDispatch()
+
+  const onToggleTodo = () => dispatch(toggleTodo(todo.id))
+  const onInputTitle = (e: React.ChangeEvent<HTMLInputElement>) =>
+    dispatch(updateTodo({ id: todo.id, title: e.target.value }))
+  const onInputDescription = (e: React.ChangeEvent<HTMLInputElement>) =>
+    dispatch(updateTodo({ id: todo.id, description: e.target.value }))
 
   return (
     <li css={[todoItemStyle, todo.done && todoItemDoneStyle, todo.chosen && todoItemChosenStyle]}>
-      <IconButton color="secondary" onClick={() => toggleTodo?.(todo.id)}>
+      <IconButton color="secondary" onClick={onToggleTodo}>
         { !todo.done ? <CropSquareIcon /> : <DoneIcon /> }
       </IconButton>
       <div className="content">
@@ -46,23 +50,17 @@ const TodoItem : React.FC<TodoItemProps> = ({ todo, toggleTodo, onInputTitle, on
   )
 }
 
-const MemoTodoItem = memo(TodoItem)
+const MemoTodoItem = React.memo(TodoItem)
 
 const TodoList : React.FC = () => {
   console.log('TodoList render')
-
   const todoList = useAppSelector(selectTodoWithFilter)
-  const dispatch = useAppDispatch()
-
-  const toggleTodoStatus = useCallback((id: number) => {
-    dispatch(toggleTodo(id))
-  }, [dispatch])
 
   return (
     <ul css={css`margin: 0; padding: 0`}>
       {
         todoList.map((todo) => (
-          <MemoTodoItem key={todo.id} todo={todo} toggleTodo={toggleTodoStatus} />
+          <MemoTodoItem key={todo.id} todo={todo} />
         ))
       }
     </ul>
@@ -105,6 +103,15 @@ const ReduxTodoWithRedux = connect(
 )(ReduxTodo) as unknown as () => JSX.Element
 
 const ReduxTodoPage : React.FC = () => {
+  console.log('ReduxTodoPage', 'render')
+
+  useEffect(() => {
+    return store.subscribe(() => {
+      console.log('store changed', store.getState())
+      window.localStorage.setItem('redux-todo', JSON.stringify(store.getState().todo))
+    })
+  }, [])
+
   return (
     <Provider store={store}>
       <ReduxTodoWithRedux />

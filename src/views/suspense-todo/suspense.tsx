@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback } from 'react'
+import React, { useState, memo, useCallback, Suspense } from 'react'
 import { css } from '@emotion/react'
 import produce from 'immer'
 import AddBoxIcon from '@mui/icons-material/AddBox'
@@ -6,6 +6,8 @@ import CropSquareIcon from '@mui/icons-material/CropSquare'
 import DoneIcon from '@mui/icons-material/Done'
 import IconButton from '@mui/material/IconButton'
 import { vanillaStyle, todoItemDoneStyle, todoItemStyle } from './style'
+import useResource from './use-resource'
+import { LoadingPage } from '../../layout'
 
 interface Todo {
   title: string
@@ -38,23 +40,7 @@ const MemoTodoItem = memo(TodoItem)
 const TodoList : React.FC = () => {
   console.log('TodoList', 'render')
 
-  const [todoList, setTodoList] = useState<Todo[]>([
-    {
-      title: 'Todo 1',
-      description: 'This is a todo',
-      done: false
-    },
-    {
-      title: 'Todo 2',
-      description: 'This is a todo',
-      done: false
-    },
-    {
-      title: 'Todo 3',
-      description: 'This is a todo',
-      done: false
-    }
-  ])
+  const [todoList, setTodoList] = useState<Todo[]>(useResource() as Todo[])
 
   // 直接修改 state 内的深层属性
   const toggleTodo = (index: number) => {
@@ -91,7 +77,7 @@ const TodoList : React.FC = () => {
   return (
     <div>
       <h2>
-        <span>初级 TODO</span>
+        <span>Suspense TODO</span>
         <IconButton color="secondary" onClick={addTodo}>
           <AddBoxIcon />
         </IconButton>
@@ -115,7 +101,9 @@ const VanillaTodo : React.FC = () => {
 
   return (
     <main css={vanillaStyle}>
-      <TodoList />
+      <LoadingPage text="TODO 数据加载中...">
+        <TodoList />
+      </LoadingPage>
     </main>
   )
 }

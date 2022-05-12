@@ -1,22 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Button from '@mui/material/Button'
 
 function Counter () {
-  const [count, setCount] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const [count, setCount] = useState(
+    Number(searchParams.get('count')) ?? 1
+  )
+  const increment = () => setCount((count) => count + 1)
+
+  useEffect(() => {
+    setSearchParams({ count: String(count) })
+  }, [count])
 
   return (
-    <Button type="button" onClick={() => setCount((count) => count + 1)}>
+    <Button type="button" onClick={increment}>
       count is: {count}
     </Button>
   )
 }
 
-function App() {
+export default function App () {
   return (
     <main className="main">
       <div><Counter /></div>
     </main>
   )
 }
-
-export default App
